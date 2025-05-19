@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from database import SessionLocal
 import models
+from fastapi import HTTPException
 
 app = FastAPI()
 
@@ -35,3 +36,10 @@ def get_orders(db: Session = Depends(get_db)):
 @app.get("/order_items")
 def get_order_items(db: Session = Depends(get_db)):
     return db.query(models.OrderItem).all()
+
+@app.get("/products/{product_id}")
+def get_product(product_id: int, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
