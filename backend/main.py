@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 import models
 from fastapi import HTTPException
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -43,3 +44,17 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
+
+##add products
+class ProductIn(BaseModel):
+    name: str
+    price: float
+    stock: int
+
+@app.post("/products")
+def create_product(product: ProductIn, db: Session = Depends(get_db)):
+    new_product = models.Product(**product.dict())
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+    return new_product
